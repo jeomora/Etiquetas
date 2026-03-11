@@ -15,8 +15,8 @@ public class Etiquetas {
     public static void main(String[] args) {
         //Etis ventana = new Etis();
         //Touch ventana = new Touch();
-        Turnos ventana = new Turnos();
-        //Pantalla ventana = new Pantalla();
+        //Turnos ventana = new Turnos();
+        Pantalla ventana = new Pantalla();
         //Semillas ventana = new Semillas();
         //Entradas ventana = new Entradas();
         //ventana.setExtendedState(JFrame.MAXIMIZED_BOTH);

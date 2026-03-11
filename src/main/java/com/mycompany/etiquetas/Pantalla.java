@@ -72,11 +72,16 @@ public class Pantalla extends javax.swing.JFrame {
         panelCajas.setOpaque(false);
 
         // Guardar referencia a cada panel
-        panelCaja1 = crearCajaConImagen("Caja 1", lblt1 = new JLabel(), "/images/roba.png", true);
-        panelCaja2 = crearCajaConImagen("Caja 2", lblt2 = new JLabel(), "/images/apachi.png", false);
-        panelCaja3 = crearCajaConImagen("Caja 3", lblt3 = new JLabel(), "/images/roba.png", true);
-        panelCaja4 = crearCajaConImagen("Caja 4", lblt4 = new JLabel(), "/images/apachi.png", false);
-
+        /*panelCaja1 = crearCajaConImagen("Caja 1", lblt1 = new JLabel(), "/images/harif.png", true);
+        panelCaja2 = crearCajaConImagen("Caja 2", lblt2 = new JLabel(), "/images/bienve.png", false);
+        panelCaja3 = crearCajaConImagen("Caja 3", lblt3 = new JLabel(), "/images/huevo.png", true);
+        panelCaja4 = crearCajaConImagen("Caja 4", lblt4 = new JLabel(), "/images/azuca.png", false);*/
+        
+        
+        panelCaja1 = crearCajaConImagen("Caja 1", lblt1 = new JLabel(), "/images/uno.png", true);
+        panelCaja2 = crearCajaConImagen("Caja 2", lblt2 = new JLabel(), "/images/dos.png", false);
+        panelCaja3 = crearCajaConImagen("Caja 3", lblt3 = new JLabel(), "/images/tres.png", true);
+        panelCaja4 = crearCajaConImagen("Caja 4", lblt4 = new JLabel(), "/images/cuatro.png", false);
 
         panelCajas.add(panelCaja1);
         panelCajas.add(panelCaja2);
@@ -84,7 +89,7 @@ public class Pantalla extends javax.swing.JFrame {
         panelCajas.add(panelCaja4);
 
         // Logo al centro (superpuesto)
-        ImageIcon icon = new ImageIcon(getClass().getResource("/images/aztecalogo.png"));
+        ImageIcon icon = new ImageIcon(getClass().getResource("/images/sticks2.png"));
         Image img = icon.getImage();
 
         // Escalar la imagen a la mitad de su tamaño original
@@ -108,69 +113,136 @@ public class Pantalla extends javax.swing.JFrame {
         setLayout(new BorderLayout());
         add(layeredPane, BorderLayout.CENTER);
     }
-
-
+    
     private JPanel crearCajaConImagen(String titulo, JLabel lblTurno, String imagePath, boolean izquierda) {
-    JPanel panel = new JPanel(new GridBagLayout());
-    panel.setOpaque(false);
-    panel.setBorder(BorderFactory.createLineBorder(Color.WHITE, 3));
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setOpaque(false);
+        panel.setBorder(BorderFactory.createLineBorder(Color.WHITE, 3));
 
-    GridBagConstraints gbc = new GridBagConstraints();
-    gbc.gridx = 0;
-    gbc.fill = GridBagConstraints.BOTH;
-    gbc.weightx = 1.0;
+        // Título arriba
+        JLabel lblTitulo = new JLabel(titulo, SwingConstants.CENTER);
+        lblTitulo.setForeground(Color.WHITE);
+        lblTitulo.setFont(new Font("Arial", Font.BOLD, 36));
+        panel.add(lblTitulo, BorderLayout.NORTH);
 
-    // Título
-    JLabel lblTitulo = new JLabel(titulo, SwingConstants.CENTER);
-    lblTitulo.setForeground(Color.WHITE);
-    lblTitulo.setFont(new Font("Arial", Font.BOLD, 64));
+        // Panel central con GridBagLayout
+        JPanel centro = new JPanel(new GridBagLayout());
+        centro.setOpaque(false);
 
-    gbc.gridy = 0;
-    gbc.weighty = 1;
-    gbc.insets = new Insets(20, 0, 20, 0);
-    panel.add(lblTitulo, gbc);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.gridy = 0;
+        gbc.weighty = 1.0;
 
-    // Panel interno con BorderLayout
-    JPanel turnoPanel = new JPanel(new BorderLayout());
-    turnoPanel.setOpaque(false);
+        // Imagen
+        ImageIcon icon = new ImageIcon(getClass().getResource(imagePath));
+        Image img = icon.getImage().getScaledInstance(250, 400, Image.SCALE_SMOOTH);
+        JLabel lblImagen = new JLabel(new ImageIcon(img));
 
-    // Imagen
-    ImageIcon icon = new ImageIcon(getClass().getResource(imagePath));
-    Image img = icon.getImage().getScaledInstance(150, 150, Image.SCALE_SMOOTH); // más grande
-    JLabel lblImagen = new JLabel(new ImageIcon(img));
+        // Turno
+        lblTurno.setText("");
+        lblTurno.setForeground(Color.WHITE);
+        lblTurno.setHorizontalAlignment(SwingConstants.CENTER);
 
-    // Turno
-    lblTurno.setText("");
-    lblTurno.setForeground(Color.WHITE);
-    lblTurno.setHorizontalAlignment(SwingConstants.CENTER);
+        // Orden según posición
+        if (izquierda) {
+            // Imagen a la izquierda
+            gbc.gridx = 0;
+            gbc.weightx = 0.3; // 30% del ancho
+            centro.add(lblImagen, gbc);
 
-    // Colocar según posición
-    if (izquierda) {
-        turnoPanel.add(lblImagen, BorderLayout.WEST);   // imagen pegada a la izquierda
-        turnoPanel.add(lblTurno, BorderLayout.CENTER);  // turno ocupa el centro
-    } else {
-        turnoPanel.add(lblTurno, BorderLayout.CENTER);  // turno ocupa el centro
-        turnoPanel.add(lblImagen, BorderLayout.EAST);   // imagen pegada a la derecha
+            gbc.gridx = 1;
+            gbc.weightx = 0.6; // 60% del ancho
+            centro.add(lblTurno, gbc);
+        } else {
+            // Imagen a la derecha
+            gbc.gridx = 0;
+            gbc.weightx = 0.6;
+            centro.add(lblTurno, gbc);
+
+            gbc.gridx = 1;
+            gbc.weightx = 0.3;
+            centro.add(lblImagen, gbc);
+        }
+
+        panel.add(centro, BorderLayout.CENTER);
+
+        // Ajuste dinámico de fuente para el turno
+        panel.addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+                int ancho = panel.getWidth();
+                int alto = panel.getHeight();
+                int fontSize = Math.min(ancho / 3, alto / 2); // turno grande
+                lblTurno.setFont(new Font("Arial", Font.BOLD, fontSize));
+            }
+        });
+
+        return panel;
     }
 
-    gbc.gridy = 1;
-    gbc.weighty = 2;
-    gbc.insets = new Insets(20, 0, 20, 0);
-    panel.add(turnoPanel, gbc);
 
-    // Ajuste dinámico de fuente para que el turno sea grande
-    panel.addComponentListener(new java.awt.event.ComponentAdapter() {
-        @Override
-        public void componentResized(java.awt.event.ComponentEvent e) {
-            int ancho = panel.getWidth();
-            int alto = panel.getHeight();
-            int fontSize = Math.min(ancho / 3, alto / 2); // más grande que antes
-            lblTurno.setFont(new Font("Arial", Font.BOLD, fontSize));
+    /*private JPanel crearCajaConImagen(String titulo, JLabel lblTurno, String imagePath, boolean izquierda) {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setOpaque(false);
+        panel.setBorder(BorderFactory.createLineBorder(Color.WHITE, 3));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weightx = 1.0;
+
+        // Título
+        JLabel lblTitulo = new JLabel(titulo, SwingConstants.CENTER);
+        lblTitulo.setForeground(Color.WHITE);
+        lblTitulo.setFont(new Font("Arial", Font.BOLD, 64));
+
+        gbc.gridy = 0;
+        gbc.weighty = 1;
+        gbc.insets = new Insets(20, 0, 20, 0);
+        panel.add(lblTitulo, gbc);
+
+        // Panel interno con BorderLayout
+        JPanel turnoPanel = new JPanel(new BorderLayout());
+        turnoPanel.setOpaque(false);
+
+        // Imagen
+        ImageIcon icon = new ImageIcon(getClass().getResource(imagePath));
+        Image img = icon.getImage().getScaledInstance(250, 400, Image.SCALE_SMOOTH); // más grande
+        JLabel lblImagen = new JLabel(new ImageIcon(img));
+
+        // Turno
+        lblTurno.setText("");
+        lblTurno.setForeground(Color.WHITE);
+        lblTurno.setHorizontalAlignment(SwingConstants.CENTER);
+
+        // Colocar según posición
+        if (izquierda) {
+            turnoPanel.add(lblImagen, BorderLayout.WEST);   // imagen pegada a la izquierda
+            turnoPanel.add(lblTurno, BorderLayout.CENTER);  // turno ocupa el centro
+        } else {
+            turnoPanel.add(lblTurno, BorderLayout.CENTER);  // turno ocupa el centro
+            turnoPanel.add(lblImagen, BorderLayout.EAST);   // imagen pegada a la derecha
         }
-    });
 
-    return panel;
-}
+        gbc.gridy = 1;
+        gbc.weighty = 2;
+        gbc.insets = new Insets(20, 0, 20, 0);
+        panel.add(turnoPanel, gbc);
+
+        // Ajuste dinámico de fuente para que el turno sea grande
+        panel.addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+                int ancho = panel.getWidth();
+                int alto = panel.getHeight();
+                int fontSize = Math.min(ancho / 3, alto / 2); // más grande que antes
+                lblTurno.setFont(new Font("Arial", Font.BOLD, fontSize));
+            }
+        });
+
+        return panel;
+    }*/
     
     private void iniciarActualizacionAutomatica() {
         int delay = 1500; // 1.5 segundos
