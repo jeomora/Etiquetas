@@ -120,7 +120,7 @@ public class Epson {
             out.write(new byte[]{0x1B, 0x40}); // inicializar
 
             // === AGREGADO: imprimir logo al inicio ===
-            BufferedImage logo = ImageIO.read(Epson.class.getResource("/images/logo.png"));
+            BufferedImage logo = ImageIO.read(Epson.class.getResource("/images/semlogo.jpeg"));
 
             // Aplanar transparencia sobre blanco
             BufferedImage logoFinal = new BufferedImage(logo.getWidth(), logo.getHeight(), BufferedImage.TYPE_INT_RGB);
@@ -139,7 +139,10 @@ public class Epson {
             // Imprimir fecha, logo y número
             out.write((fechaHoraFormateada + "\n").getBytes("CP437"));
             out.write(new byte[]{0x1B, 0x64, 0x01}); // pequeño feed
+            out.write(("TURNO SEMILLAS \n").getBytes("CP437"));
+            out.write(new byte[]{0x1B, 0x64, 0x01}); // pequeño feed
             out.write(escposLogo);
+            out.write(new byte[]{0x1B, 0x64, 0x01}); // feed
             out.write(escposImage);
 
             // Avanzar papel y cortar
@@ -275,6 +278,140 @@ public class Epson {
                 nuevo = numero + 1;
             }
             String insertSQL = "INSERT INTO turnosemillas (numero) VALUES (?)";
+            stmt = conn.prepareStatement(insertSQL);
+            stmt.setInt(1, nuevo);
+            stmt.executeUpdate();
+            System.out.println("Numero mas alto "+ nuevo +".");
+            stmt.close();
+            return nuevo;
+        } catch (SQLException e) {
+            System.out.println("Error EL NUMERO DE TURNO: " + e.getMessage());
+        }
+        return 0;
+    }
+    
+    public static void testPrinterEpsonCarnes() {
+        int nume = getTurnoCarnes();
+        String numero = ""+nume; // prueba con 13, 21, 999, etc.
+        LocalDateTime fechaHoraActual = LocalDateTime.now();
+        DateTimeFormatter formatoConDia = DateTimeFormatter.ofPattern("EEEE dd/MM/yyyy HH:mm:ss", new Locale("es", "ES"));
+        String fechaHoraFormateada = fechaHoraActual.format(formatoConDia).toUpperCase();
+        
+        try {
+            int printerWidth = 384; // ancho máximo en píxeles de la TM-T88V
+
+            // Calcular tamaño de fuente dinámico
+            int fontSize = 10;
+            Font font;
+            FontMetrics fm;
+            int textWidth;
+            int textHeight;
+
+            BufferedImage tmpImg = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
+            Graphics2D tmpG = tmpImg.createGraphics();
+
+            do {
+                fontSize += 5;
+                font = new Font("Arial", Font.BOLD, fontSize);
+                tmpG.setFont(font);
+                fm = tmpG.getFontMetrics();
+                textWidth = fm.stringWidth(numero);
+                textHeight = fm.getHeight();
+            } while (textWidth < printerWidth - 20 && textHeight < 400 && fontSize < 300);
+
+            tmpG.dispose();
+
+            // Ajustar altura de imagen al texto
+            int imgHeight = textHeight + 20; // margen de seguridad
+            BufferedImage image = new BufferedImage(printerWidth, imgHeight, BufferedImage.TYPE_INT_RGB);
+            Graphics2D g = image.createGraphics();
+            g.setColor(Color.WHITE);
+            g.fillRect(0, 0, printerWidth, imgHeight);
+            g.setColor(Color.BLACK);
+            g.setFont(font);
+
+            // Centrar y dibujar
+            int x = (printerWidth - textWidth) / 2;
+            int y = fm.getAscent();
+            g.drawString(numero, x, y);
+            g.dispose();
+
+            // Recortar imagen para eliminar espacio en blanco superior
+            image = cropTopWhite(image);
+
+            // Convertir a ESC/POS raster
+            byte[] escposImage = convertToEscPosRaster(image);
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            out.write(new byte[]{0x1B, 0x40}); // inicializar
+
+            // === AGREGADO: imprimir logo al inicio ===
+            BufferedImage logo = ImageIO.read(Epson.class.getResource("/images/carlogo.jpeg"));
+
+            // Aplanar transparencia sobre blanco
+            BufferedImage logoFinal = new BufferedImage(logo.getWidth(), logo.getHeight(), BufferedImage.TYPE_INT_RGB);
+            Graphics2D g2 = logoFinal.createGraphics();
+            g2.setColor(Color.WHITE);
+            g2.fillRect(0, 0, logoFinal.getWidth(), logoFinal.getHeight());
+            g2.drawImage(logo, 0, 0, null);
+            g2.dispose();
+
+            // Recortar logo para eliminar espacio en blanco superior
+            logoFinal = cropTopWhite(logoFinal);
+
+            // Convertir a ESC/POS raster
+            byte[] escposLogo = convertToEscPosRaster(logoFinal);
+
+            
+            out.write(escposLogo);
+            out.write(new byte[]{0x1B, 0x64, 0x01}); // pequeño feed
+            out.write(escposImage);
+            out.write((fechaHoraFormateada + "\n").getBytes("CP437"));
+            out.write(new byte[]{0x1B, 0x64, 0x01}); // pequeño feed
+            out.write(("TURNO CARNES FRIAS \n").getBytes("CP437"));
+            out.write(new byte[]{0x1B, 0x64, 0x01}); // pequeño feed
+            
+
+            // Avanzar papel y cortar
+            out.write(new byte[]{0x1B, 0x64, 0x05}); // feed
+            out.write(new byte[]{0x1D, 0x56, 0x00}); // corte
+
+            byte[] finalData = out.toByteArray();
+
+            if (epsonService != null) {
+                DocPrintJob printJob = epsonService.createPrintJob();
+                Doc doc = new SimpleDoc(finalData, DocFlavor.BYTE_ARRAY.AUTOSENSE, null);
+                printJob.print(doc, null);
+                System.out.println("Ticket enviado a Epson con logo y número gigante.");
+            } else {
+                System.out.println("Impresora Epson no encontrada.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public static int getTurnoCarnes() {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        System.out.println("inicio turnos");
+        try {
+            conn = conectar();
+            String query = "SELECT id_turno,fecha_registro,numero,estatus,fecha_inicio FROM turnocarnes WHERE DATE(fecha_registro) = CURDATE() ORDER BY id_turno DESC;";
+            stmt = conn.prepareStatement(query);
+            rs = stmt.executeQuery();
+            System.out.println("realizo consulta");
+            System.out.println(rs);
+            int nuevo = 0;
+            if(rs.next()){
+                int numero = rs.getInt("numero");
+                nuevo = numero + 1;
+            }else{
+                int numero = 0;
+                nuevo = numero + 1;
+            }
+            String insertSQL = "INSERT INTO turnocarnes (numero) VALUES (?)";
             stmt = conn.prepareStatement(insertSQL);
             stmt.setInt(1, nuevo);
             stmt.executeUpdate();

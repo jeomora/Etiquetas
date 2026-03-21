@@ -10,17 +10,15 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
  *
  * @author JEOS
  */
-public class ConexionEpson {
-    private static final String URL = "jdbc:mysql://192.168.1.4:3306/turnosemillas";
+public class ConexionEpsonCarnes {
+    private static final String URL = "jdbc:mysql://127.0.0.1:3306/turnosemillas";
     private static final String USUARIO = "root";
     private static final String CONTRASENA = "";
 
@@ -34,7 +32,7 @@ public class ConexionEpson {
         System.out.println("inicio turnos");
 
         String query = "SELECT id_turno,fecha_registro,numero,estatus,fecha_inicio " +
-                       "FROM turnosemillas " +
+                       "FROM turnocarnes " +
                        "WHERE DATE(fecha_registro) = CURDATE() " +
                        "ORDER BY id_turno DESC;";
 
@@ -61,7 +59,7 @@ public class ConexionEpson {
         System.out.println("inicio turnos");
 
         String query = "SELECT id_turno,fecha_registro,numero,estatus,fecha_inicio " +
-                       "FROM turnosemillas " +
+                       "FROM turnocarnes " +
                        "WHERE DATE(fecha_registro) = CURDATE() AND estatus = 2 " +
                        "ORDER BY id_turno DESC;";
 
@@ -84,7 +82,7 @@ public class ConexionEpson {
     
     // Cargar siguientes turnos
     public static ResultSet cargarSiguientes() {
-        String query = "SELECT id_turno,numero FROM turnosemillas WHERE DATE(fecha_registro) = CURDATE() AND estatus = 1 ORDER BY numero ASC LIMIT 6";
+        String query = "SELECT id_turno,numero FROM turnocarnes WHERE DATE(fecha_registro) = CURDATE() AND estatus = 1 ORDER BY numero ASC LIMIT 6";
         try (Connection conn = conectar(); Statement stmt = conn.createStatement()) {
             try (ResultSet rs = stmt.executeQuery(query)) {
                 return rs;
@@ -99,7 +97,7 @@ public class ConexionEpson {
     public static Map<Integer, Integer> cargarXCaja() {
         Map<Integer, Integer> turnos = new HashMap<>();
         String query = "SELECT caja, MAX(numero) as numero " +
-                       "FROM turnosemillas " +
+                       "FROM turnocarnes " +
                        "WHERE estatus = 2 AND DATE(fecha_registro) = CURDATE() " +
                        "GROUP BY caja;";
         try (Connection conn = conectar();

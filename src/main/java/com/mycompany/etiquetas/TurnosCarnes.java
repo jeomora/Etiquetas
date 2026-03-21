@@ -4,11 +4,8 @@
  */
 package com.mycompany.etiquetas;
 
-import static com.mycompany.etiquetas.ConexionEpson.conectar;
+import static com.mycompany.etiquetas.ConexionEpsonCarnes.conectar;
 import static com.mycompany.etiquetas.Epson.getPrinterEpson;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import java.awt.Rectangle;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -21,25 +18,22 @@ import javax.swing.Timer;
  *
  * @author JEOS
  */
-public class Turnos extends javax.swing.JFrame {
+public class TurnosCarnes extends javax.swing.JFrame {
     private long lastPrintTime = 0;
     Epson epson;
     
-    public Turnos() {
+    public TurnosCarnes() {
         this.setUndecorated(true); // sin bordes
         initComponents();
-        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        GraphicsDevice primaryScreen = ge.getDefaultScreenDevice();
-        Rectangle bounds = primaryScreen.getDefaultConfiguration().getBounds();
-
-        setBounds(bounds);
-        setExtendedState(JFrame.MAXIMIZED_BOTH); // solo maximizado, no full-screen
-        lblTurno.setText(""+ConexionEpson.getAtento());
+        java.awt.GraphicsDevice gd = 
+            java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        gd.setFullScreenWindow(this);
+        lblTurno.setText(""+ConexionEpsonCarnes.getAtento());
         epson.getPrinterEpson();
         // Crear un Timer que se repite cada 3000 ms (3 segundos)
         Timer timer = new Timer(3000, e -> {
             // Actualizar el label con el valor más reciente
-            lblTurno.setText("" + ConexionEpson.getAtento());
+            lblTurno.setText("" + ConexionEpsonCarnes.getAtento());
             // Actualizar los siguientes turnos
             actualizarSiguientes("SucursalX", next1, next2, next3, next4, next5, next6);
         });
@@ -69,9 +63,7 @@ public class Turnos extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setMaximumSize(null);
         setMinimumSize(null);
-        setPreferredSize(new java.awt.Dimension(1080, 1920));
         getContentPane().setLayout(null);
 
         jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/logot.png"))); // NOI18N
@@ -137,7 +129,7 @@ public class Turnos extends javax.swing.JFrame {
         next6.setBounds(540, 1350, 200, 70);
 
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/bgt2.png"))); // NOI18N
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/backaz.png"))); // NOI18N
         jLabel1.setToolTipText("");
         jLabel1.setVerticalAlignment(javax.swing.SwingConstants.TOP);
         getContentPane().add(jLabel1);
@@ -149,7 +141,7 @@ public class Turnos extends javax.swing.JFrame {
     private void btnTurnoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTurnoActionPerformed
         long now = System.currentTimeMillis();
         if (now - lastPrintTime >= 3000) { // 3000 ms = 3 segundos
-            epson.testPrinterEpson();
+            epson.testPrinterEpsonCarnes();
             lastPrintTime = now;
         } else {
             System.out.println("Esperando cooldown de impresión...");
@@ -164,7 +156,7 @@ public class Turnos extends javax.swing.JFrame {
             lbl.setText(""); 
         }
 
-        String query = "SELECT numero FROM turnosemillas " +
+        String query = "SELECT numero FROM turnocarnes " +
                        "WHERE DATE(fecha_registro) = CURDATE() AND estatus = 1 " +
                        "ORDER BY numero ASC LIMIT 6";
 
@@ -200,19 +192,20 @@ public class Turnos extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Turnos.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(TurnosCarnes.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Turnos.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(TurnosCarnes.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Turnos.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(TurnosCarnes.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Turnos.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(TurnosCarnes.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
         //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> {
-            Turnos ventana = new Turnos();
+            TurnosCarnes ventana = new TurnosCarnes();
             ventana.setVisible(true);
         });
 

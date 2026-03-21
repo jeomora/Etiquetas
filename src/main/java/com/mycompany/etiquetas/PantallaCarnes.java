@@ -8,16 +8,11 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Image;
-import java.awt.Insets;
-import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.util.Map;
 import javax.sound.sampled.AudioInputStream;
@@ -36,46 +31,30 @@ import javax.swing.SwingConstants;
  *
  * @author JEOS
  */
-public class Pantalla extends javax.swing.JFrame {
-
+public class PantallaCarnes extends javax.swing.JFrame {
+    
     private JLabel lblt1, lblt2, lblt3, lblt4;
     // Variables para guardar el último turno mostrado
     private String lastT1 = "", lastT2 = "", lastT3 = "", lastT4 = "";
     private JPanel panelCaja1, panelCaja2, panelCaja3, panelCaja4;
 
-
-
-    public Pantalla() {
-        setUndecorated(true); // sin bordes, sin botones
+    public PantallaCarnes() {
+        this.setUndecorated(true); // sin bordes
         initComponents();
+        java.awt.GraphicsDevice gd = 
+            java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        gd.setFullScreenWindow(this);
 
-        // Colocar en segundo monitor
-        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        GraphicsDevice defaultScreen = ge.getDefaultScreenDevice();
-        GraphicsDevice[] screens = ge.getScreenDevices();
-
-        GraphicsDevice secondScreen = null;
-        for (GraphicsDevice gd : screens) {
-            if (!gd.equals(defaultScreen)) {
-                secondScreen = gd;
-                break;
-            }
-        }
-
-        if (secondScreen != null) {
-            Rectangle bounds = secondScreen.getDefaultConfiguration().getBounds();
-            setBounds(bounds); // maximiza en ese monitor
-        } else {
-            setExtendedState(JFrame.MAXIMIZED_BOTH);
-        }
-
-        FondoPanel fondo = new FondoPanel();
+        FondoPanelCarnes fondo = new FondoPanelCarnes();
         setContentPane(fondo);
+
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        setSize(screenSize);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         configurarPantalla();
         iniciarActualizacionAutomatica();
-
-        setVisible(true); // importante mostrar al final
+        
     }
 
     private void configurarPantalla() {
@@ -197,69 +176,6 @@ public class Pantalla extends javax.swing.JFrame {
 
         return panel;
     }
-
-
-    /*private JPanel crearCajaConImagen(String titulo, JLabel lblTurno, String imagePath, boolean izquierda) {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setOpaque(false);
-        panel.setBorder(BorderFactory.createLineBorder(Color.WHITE, 3));
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.weightx = 1.0;
-
-        // Título
-        JLabel lblTitulo = new JLabel(titulo, SwingConstants.CENTER);
-        lblTitulo.setForeground(Color.WHITE);
-        lblTitulo.setFont(new Font("Arial", Font.BOLD, 64));
-
-        gbc.gridy = 0;
-        gbc.weighty = 1;
-        gbc.insets = new Insets(20, 0, 20, 0);
-        panel.add(lblTitulo, gbc);
-
-        // Panel interno con BorderLayout
-        JPanel turnoPanel = new JPanel(new BorderLayout());
-        turnoPanel.setOpaque(false);
-
-        // Imagen
-        ImageIcon icon = new ImageIcon(getClass().getResource(imagePath));
-        Image img = icon.getImage().getScaledInstance(250, 400, Image.SCALE_SMOOTH); // más grande
-        JLabel lblImagen = new JLabel(new ImageIcon(img));
-
-        // Turno
-        lblTurno.setText("");
-        lblTurno.setForeground(Color.WHITE);
-        lblTurno.setHorizontalAlignment(SwingConstants.CENTER);
-
-        // Colocar según posición
-        if (izquierda) {
-            turnoPanel.add(lblImagen, BorderLayout.WEST);   // imagen pegada a la izquierda
-            turnoPanel.add(lblTurno, BorderLayout.CENTER);  // turno ocupa el centro
-        } else {
-            turnoPanel.add(lblTurno, BorderLayout.CENTER);  // turno ocupa el centro
-            turnoPanel.add(lblImagen, BorderLayout.EAST);   // imagen pegada a la derecha
-        }
-
-        gbc.gridy = 1;
-        gbc.weighty = 2;
-        gbc.insets = new Insets(20, 0, 20, 0);
-        panel.add(turnoPanel, gbc);
-
-        // Ajuste dinámico de fuente para que el turno sea grande
-        panel.addComponentListener(new java.awt.event.ComponentAdapter() {
-            @Override
-            public void componentResized(java.awt.event.ComponentEvent e) {
-                int ancho = panel.getWidth();
-                int alto = panel.getHeight();
-                int fontSize = Math.min(ancho / 3, alto / 2); // más grande que antes
-                lblTurno.setFont(new Font("Arial", Font.BOLD, fontSize));
-            }
-        });
-
-        return panel;
-    }*/
     
     private void iniciarActualizacionAutomatica() {
         int delay = 1500; // 1.5 segundos
@@ -267,7 +183,7 @@ public class Pantalla extends javax.swing.JFrame {
     }
 
     private void actualizarTurnos() {
-        Map<Integer, Integer> turnos = ConexionEpson.cargarXCaja();
+        Map<Integer, Integer> turnos = ConexionEpsonCarnes.cargarXCaja();
         if (turnos == null) return;
 
         actualizarLabel(lblt1, String.valueOf(turnos.getOrDefault(1, 0)), 1, panelCaja1);
@@ -343,7 +259,7 @@ public class Pantalla extends javax.swing.JFrame {
 
                 System.out.println("Reproducción completada");
 
-            } catch (Exception e) {
+            } catch (Exception e) {  
                 System.out.println("Error al reproducir sonido: " + e.getMessage());
             }
         }).start();
@@ -384,13 +300,9 @@ public class Pantalla extends javax.swing.JFrame {
         });
         blinkTimer.start();
     }
-
-
-
-
-
-
-
+    
+    
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -406,11 +318,11 @@ public class Pantalla extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1184, Short.MAX_VALUE)
+            .addGap(0, 400, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 729, Short.MAX_VALUE)
+            .addGap(0, 300, Short.MAX_VALUE)
         );
 
         pack();
@@ -419,8 +331,36 @@ public class Pantalla extends javax.swing.JFrame {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
-        java.awt.EventQueue.invokeLater(() -> new Pantalla());
+    public static void main(String args[]) {
+        /* Set the Nimbus look and feel */
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         */
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException ex) {
+            java.util.logging.Logger.getLogger(PantallaCarnes.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            java.util.logging.Logger.getLogger(PantallaCarnes.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            java.util.logging.Logger.getLogger(PantallaCarnes.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(PantallaCarnes.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        //</editor-fold>
+
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new PantallaCarnes().setVisible(true);
+            }
+        });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

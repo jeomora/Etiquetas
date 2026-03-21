@@ -4,6 +4,7 @@
  */
 package com.mycompany.etiquetas;
 
+import static com.mycompany.etiquetas.ConexionEpsonCarnes.conectar;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -18,6 +19,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -52,6 +57,7 @@ public class Touch extends javax.swing.JFrame {
     //Epson epson = new Epson();
     String sucuch = "7";
     private static int x = 0;
+    private long lastPrintTime = 0;
     DefaultTableModel tableModel = new DefaultTableModel(new Object[]{"Código", "Descripción", "Precio"}, 0){
         @Override
         public boolean isCellEditable(int row, int column) {
@@ -547,7 +553,6 @@ public class Touch extends javax.swing.JFrame {
         lblPeso = new javax.swing.JLabel();
         resultadoLabel = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
-        btnRefresh = new javax.swing.JButton();
         jLabel6 = new javax.swing.JLabel();
         btnLast1 = new javax.swing.JButton();
         btnLast2 = new javax.swing.JButton();
@@ -567,6 +572,7 @@ public class Touch extends javax.swing.JFrame {
         btnLonga = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
         txtBusca = new javax.swing.JTextField();
+        btnTurno = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -618,15 +624,6 @@ public class Touch extends javax.swing.JFrame {
         getContentPane().add(jLabel5);
         jLabel5.setBounds(0, 0, 150, 150);
 
-        btnRefresh.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/refresh.jpg"))); // NOI18N
-        btnRefresh.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnRefreshActionPerformed(evt);
-            }
-        });
-        getContentPane().add(btnRefresh);
-        btnRefresh.setBounds(1220, 10, 66, 60);
-
         jLabel6.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         jLabel6.setForeground(new java.awt.Color(255, 255, 255));
         jLabel6.setText("Últimos 5");
@@ -636,28 +633,28 @@ public class Touch extends javax.swing.JFrame {
         btnLast1.setBackground(new java.awt.Color(204, 255, 204));
         btnLast1.setBorder(BorderFactory.createLineBorder(Color.GREEN));
         getContentPane().add(btnLast1);
-        btnLast1.setBounds(910, 200, 260, 30);
+        btnLast1.setBounds(910, 200, 210, 30);
 
         btnLast2.setBackground(new java.awt.Color(204, 255, 204));
         btnLast2.setBorder(BorderFactory.createLineBorder(Color.GREEN));
         getContentPane().add(btnLast2);
-        btnLast2.setBounds(910, 160, 260, 30);
+        btnLast2.setBounds(910, 160, 210, 30);
 
         btnLast3.setBackground(new java.awt.Color(204, 255, 204));
         btnLast3.setBorder(BorderFactory.createLineBorder(Color.GREEN));
         getContentPane().add(btnLast3);
-        btnLast3.setBounds(910, 120, 260, 30);
+        btnLast3.setBounds(910, 120, 210, 30);
 
         btnLast4.setBackground(new java.awt.Color(204, 255, 204));
         btnLast4.setBorder(BorderFactory.createLineBorder(Color.GREEN));
         getContentPane().add(btnLast4);
-        btnLast4.setBounds(910, 80, 260, 30);
+        btnLast4.setBounds(910, 80, 210, 30);
 
         btnLast5.setBackground(new java.awt.Color(204, 255, 204));
         btnLast5.setBorder(BorderFactory.createLineBorder(Color.GREEN)
         );
         getContentPane().add(btnLast5);
-        btnLast5.setBounds(910, 40, 260, 30);
+        btnLast5.setBounds(910, 40, 210, 30);
 
         btnJamon.setBackground(new java.awt.Color(153, 255, 204));
         btnJamon.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
@@ -795,6 +792,19 @@ public class Touch extends javax.swing.JFrame {
         getContentPane().add(txtBusca);
         txtBusca.setBounds(10, 210, 220, 31);
 
+        btnTurno.setBackground(new java.awt.Color(51, 51, 255));
+        btnTurno.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        btnTurno.setForeground(new java.awt.Color(255, 255, 255));
+        btnTurno.setText("NUEVO TURNO");
+        btnTurno.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        btnTurno.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnTurnoActionPerformed(evt);
+            }
+        });
+        getContentPane().add(btnTurno);
+        btnTurno.setBounds(1140, 40, 140, 100);
+
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/backs.png"))); // NOI18N
         jLabel1.setMaximumSize(new java.awt.Dimension(1920, 1080));
         jLabel1.setMinimumSize(new java.awt.Dimension(1920, 1080));
@@ -804,54 +814,6 @@ public class Touch extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
-    private void btnRefreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRefreshActionPerformed
-        pProveedores.removeAll();
-        pProveedores.revalidate();
-        pProveedores.repaint();
-        tableModel.setRowCount(0);
-        ConexionBaseDeDatos.cargarProductos(sucuch);
-        ConexionBaseDeDatos loader = new ConexionBaseDeDatos();
-        Proveedor[] proveedores = loader.cargarProveedores();
-        loader.cargarProductosProv(sucuch);
-        pProveedores.setLayout(new BoxLayout(pProveedores, BoxLayout.Y_AXIS));
-        for (Proveedor p : proveedores) {
-            JLabel label = new JLabel("lbl" + (p.getIdProveedor()));
-            Font fonta = new Font("Arial", Font.BOLD, 32);
-            label.setFont(fonta);
-            ImageIcon icon = loadImage("img" + p.getIdProveedor() + ".jpg");
-
-            if (icon != null) {
-                label.setIcon(icon);
-                label.setText("");
-            } else {
-                // Intentar cargar una imagen alternativa
-                icon = loadImage("img" + p.getIdProveedor() + ".png");
-                if (icon != null) {
-                    label.setIcon(icon);
-                    label.setText("");
-                } else {
-                    label.setText(p.getNick());  // Si no hay imagen, mostrar el nombre de usuario
-                }
-            }
-
-            label.setAlignmentX(Component.LEFT_ALIGNMENT);
-            label.setMaximumSize(new Dimension(Integer.MAX_VALUE, label.getPreferredSize().height));
-            Border border = BorderFactory.createLineBorder(Color.BLACK, 1); 
-            label.setBorder(border); 
-            Border padding = new EmptyBorder(30, 0, 30, 0);
-            label.setBorder(BorderFactory.createCompoundBorder(border, padding));
-            label.setPreferredSize(new Dimension(200, 180));
-            label.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    cargaProductos(p.getIdProveedor());
-                }
-            });
-            pProveedores.add(label);
-        }
-        loader.cargarProductos(sucuch);
-    }//GEN-LAST:event_btnRefreshActionPerformed
 
     private void btnJamonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnJamonActionPerformed
         // TODO add your handling code here:
@@ -906,6 +868,69 @@ public class Touch extends javax.swing.JFrame {
     private void codigoTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_codigoTextFieldActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_codigoTextFieldActionPerformed
+
+    private void btnTurnoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTurnoActionPerformed
+        long now = System.currentTimeMillis();
+        if (now - lastPrintTime >= 3000) { // 3000 ms = 3 segundos
+            Connection conn = null;
+            PreparedStatement stmt = null;
+            ResultSet rs = null;
+            System.out.println("inicio turnos");
+
+            try {
+                conn = conectar();
+
+                // Leer el número de caja desde caja.txt
+                int numeroCaja = 1; // valor por defecto
+                File archivoCaja = new File("caja.txt");
+                if (archivoCaja.exists()) {
+                    try (BufferedReader br = new BufferedReader(new FileReader(archivoCaja))) {
+                        String linea = br.readLine();
+                        if (linea != null && !linea.isEmpty()) {
+                            numeroCaja = Integer.parseInt(linea.trim());
+                        }
+                    } catch (Exception e) {
+                        System.out.println("Error leyendo caja.txt: " + e.getMessage());
+                    }
+                } else {
+                    System.out.println("Archivo caja.txt no encontrado.");
+                }
+
+                String query = "SELECT id_turno,fecha_registro,numero,estatus,fecha_inicio FROM turnocarnes " +
+                               "WHERE DATE(fecha_registro) = CURDATE() AND estatus = 1 ORDER BY id_turno ASC;";
+                stmt = conn.prepareStatement(query);
+                rs = stmt.executeQuery();
+                System.out.println("realizo consulta");
+
+                if (rs.next()) {
+                    int id_turno = rs.getInt("id_turno");
+                    int numero = rs.getInt("numero");
+                    System.out.println(numero);
+
+                    // Actualizar estatus y agregar campo caja
+                    String updateSQL = "UPDATE turnocarnes SET estatus = 2, caja = ? WHERE id_turno = ?";
+                    stmt = conn.prepareStatement(updateSQL);
+                    stmt.setInt(1, numeroCaja);
+                    stmt.setInt(2, id_turno);
+                    stmt.executeUpdate();
+
+                    btnTurno.setText("<html><div style='text-align:center;'>NUEVO TURNO <br>" + numero +"</div></html>");
+                    // reproducirSonido();
+
+                    // 🔑 Actualizar cooldown
+                    lastPrintTime = now;
+                } else {
+                    btnTurno.setText("<html>NO HAY<br>NÚMEROS<br>SIGUIENTES</html>");
+                    lastPrintTime = now; // también actualiza para evitar spam
+                }
+
+            } catch (SQLException e) {
+                System.out.println("Error EL NÚMERO DE TURNO: " + e.getMessage());
+            }
+        } else {
+            System.out.println("Esperando cooldown de impresión...");
+        }
+    }//GEN-LAST:event_btnTurnoActionPerformed
     
     
     /**
@@ -960,9 +985,9 @@ public class Touch extends javax.swing.JFrame {
     private javax.swing.JButton btnLast5;
     private javax.swing.JButton btnLonga;
     private javax.swing.JButton btnQueso;
-    private javax.swing.JButton btnRefresh;
     private javax.swing.JButton btnSalchi;
     private javax.swing.JButton btnTocino;
+    private javax.swing.JButton btnTurno;
     private javax.swing.JTextField codigoTextField;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
