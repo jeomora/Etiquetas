@@ -5,7 +5,7 @@
 package com.mycompany.etiquetas;
 
 
-import static com.mycompany.etiquetas.ConexionEpson.conectar;
+import static com.mycompany.etiquetas.ConexionEpsonCarnes.conectar;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;

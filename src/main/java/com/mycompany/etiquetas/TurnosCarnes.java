@@ -6,6 +6,9 @@ package com.mycompany.etiquetas;
 
 import static com.mycompany.etiquetas.ConexionEpsonCarnes.conectar;
 import static com.mycompany.etiquetas.Epson.getPrinterEpson;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -25,10 +28,13 @@ public class TurnosCarnes extends javax.swing.JFrame {
     public TurnosCarnes() {
         this.setUndecorated(true); // sin bordes
         initComponents();
-        java.awt.GraphicsDevice gd = 
-            java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-        gd.setFullScreenWindow(this);
-        lblTurno.setText(""+ConexionEpsonCarnes.getAtento());
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice primaryScreen = ge.getDefaultScreenDevice();
+        Rectangle bounds = primaryScreen.getDefaultConfiguration().getBounds();
+
+        setBounds(bounds);
+        setExtendedState(JFrame.MAXIMIZED_BOTH); // solo maximizado, no full-screen
+        lblTurno.setText(""+ConexionEpson.getAtento());
         epson.getPrinterEpson();
         // Crear un Timer que se repite cada 3000 ms (3 segundos)
         Timer timer = new Timer(3000, e -> {
@@ -85,10 +91,10 @@ public class TurnosCarnes extends javax.swing.JFrame {
         lblActual.setForeground(new java.awt.Color(255, 255, 255));
         lblActual.setText("SIGUIENTES :");
         getContentPane().add(lblActual);
-        lblActual.setBounds(20, 830, 490, 70);
+        lblActual.setBounds(20, 710, 490, 70);
 
         btnTurno.setFont(new java.awt.Font("Segoe UI", 1, 48)); // NOI18N
-        btnTurno.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/turno.png"))); // NOI18N
+        btnTurno.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/turcar_1.png"))); // NOI18N
         btnTurno.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.LOWERED, new java.awt.Color(51, 255, 255), new java.awt.Color(204, 255, 255), new java.awt.Color(0, 51, 51), new java.awt.Color(0, 153, 153)));
         btnTurno.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -96,37 +102,37 @@ public class TurnosCarnes extends javax.swing.JFrame {
             }
         });
         getContentPane().add(btnTurno);
-        btnTurno.setBounds(870, 910, 200, 360);
+        btnTurno.setBounds(260, 860, 800, 350);
 
         next1.setFont(new java.awt.Font("Segoe UI", 1, 68)); // NOI18N
         next1.setForeground(new java.awt.Color(255, 255, 255));
         getContentPane().add(next1);
-        next1.setBounds(540, 830, 140, 70);
+        next1.setBounds(90, 820, 140, 70);
 
         next2.setFont(new java.awt.Font("Segoe UI", 1, 68)); // NOI18N
         next2.setForeground(new java.awt.Color(255, 255, 255));
         getContentPane().add(next2);
-        next2.setBounds(540, 930, 140, 70);
+        next2.setBounds(90, 910, 140, 70);
 
         next3.setFont(new java.awt.Font("Segoe UI", 1, 68)); // NOI18N
         next3.setForeground(new java.awt.Color(255, 255, 255));
         getContentPane().add(next3);
-        next3.setBounds(540, 1030, 160, 70);
+        next3.setBounds(90, 1000, 140, 70);
 
         next4.setFont(new java.awt.Font("Segoe UI", 1, 68)); // NOI18N
         next4.setForeground(new java.awt.Color(255, 255, 255));
         getContentPane().add(next4);
-        next4.setBounds(540, 1140, 190, 70);
+        next4.setBounds(90, 1120, 150, 70);
 
         next5.setFont(new java.awt.Font("Segoe UI", 1, 68)); // NOI18N
         next5.setForeground(new java.awt.Color(255, 255, 255));
         getContentPane().add(next5);
-        next5.setBounds(540, 1250, 210, 70);
+        next5.setBounds(90, 1230, 150, 70);
 
         next6.setFont(new java.awt.Font("Segoe UI", 1, 68)); // NOI18N
         next6.setForeground(new java.awt.Color(255, 255, 255));
         getContentPane().add(next6);
-        next6.setBounds(540, 1350, 200, 70);
+        next6.setBounds(90, 1330, 150, 70);
 
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/backaz.png"))); // NOI18N

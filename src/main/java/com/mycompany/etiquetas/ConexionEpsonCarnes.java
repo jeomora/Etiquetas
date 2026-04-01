@@ -18,7 +18,8 @@ import java.util.Map;
  * @author JEOS
  */
 public class ConexionEpsonCarnes {
-    private static final String URL = "jdbc:mysql://127.0.0.1:3306/turnosemillas";
+    private static final String URL = "jdbc:mysql://192.168.1.4:3306/turnosemillas";
+    //private static final String URL = "jdbc:mysql://localhost:3306/turnosemillas";
     private static final String USUARIO = "root";
     private static final String CONTRASENA = "";
 

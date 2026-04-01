@@ -9,10 +9,14 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Image;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.util.Map;
 import javax.sound.sampled.AudioInputStream;
@@ -26,6 +30,8 @@ import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.OverlayLayout;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
 /**
  *
@@ -41,20 +47,69 @@ public class PantallaCarnes extends javax.swing.JFrame {
     public PantallaCarnes() {
         this.setUndecorated(true); // sin bordes
         initComponents();
-        java.awt.GraphicsDevice gd = 
-            java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-        gd.setFullScreenWindow(this);
 
         FondoPanelCarnes fondo = new FondoPanelCarnes();
         setContentPane(fondo);
 
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        setSize(screenSize);
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
-
         configurarPantalla();
         iniciarActualizacionAutomatica();
+
+        setVisible(true); // importante mostrar al final
         
+        iniciarVerificacionMonitor();
+        
+    }
+    
+    private void iniciarVerificacionMonitor() {
+        Timer timer = new Timer(5000, e -> verificarYReubicar());
+        timer.start();
+    }
+
+    private void verificarYReubicar() {
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice[] screens = ge.getScreenDevices();
+        GraphicsDevice defaultScreen = ge.getDefaultScreenDevice();
+
+        GraphicsDevice secondScreen = null;
+
+        for (GraphicsDevice gd : screens) {
+            if (!gd.equals(defaultScreen)) {
+                secondScreen = gd;
+                break;
+            }
+        }
+
+        if (secondScreen == null) return;
+
+        // Obtener bounds del segundo monitor
+        Rectangle secondBounds = secondScreen.getDefaultConfiguration().getBounds();
+
+        // Obtener el centro de la ventana
+        Point center = new Point(
+            getX() + getWidth() / 2,
+            getY() + getHeight() / 2
+        );
+
+        // Detectar en qué monitor está realmente la ventana
+        GraphicsDevice currentScreen = null;
+
+        for (GraphicsDevice gd : screens) {
+            Rectangle bounds = gd.getDefaultConfiguration().getBounds();
+            if (bounds.contains(center)) {
+                currentScreen = gd;
+                break;
+            }
+        }
+
+        // Si no está en el segundo monitor → mover
+        if (currentScreen == null || !currentScreen.equals(secondScreen)) {
+            SwingUtilities.invokeLater(() -> {
+                setBounds(secondBounds);
+                validate();
+                repaint();
+                System.out.println("Reubicando al segundo monitor...");
+            });
+        }
     }
 
     private void configurarPantalla() {
