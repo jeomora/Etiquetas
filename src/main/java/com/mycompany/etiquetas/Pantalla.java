@@ -20,6 +20,7 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
+import java.util.List;
 import java.util.Map;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -30,6 +31,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
+import javax.swing.JSplitPane;
 import javax.swing.OverlayLayout;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -51,6 +53,8 @@ public class Pantalla extends javax.swing.JFrame {
     public Pantalla() {
         setUndecorated(true); // sin bordes, sin botones
         initComponents();
+        System.out.println("Directorio actual: " + System.getProperty("user.dir"));
+        actualizarFacebookCache();
 
         /*// Colocar en segundo monitor
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -184,8 +188,40 @@ public class Pantalla extends javax.swing.JFrame {
         layeredPane.add(lblLogo, JLayeredPane.PALETTE_LAYER);
         
         // Agregar al frame
-        setLayout(new BorderLayout());
-        add(layeredPane, BorderLayout.CENTER);
+        //setLayout(new BorderLayout());
+        //add(layeredPane, BorderLayout.CENTER);
+        //setLayout(new BorderLayout());
+        
+        // Panel izquierdo (tus cajas)
+        JPanel panelIzquierdo = new JPanel(new BorderLayout());
+        panelIzquierdo.add(layeredPane, BorderLayout.CENTER);
+
+        // Panel derecho (Facebook)
+        JPanel panelDerecho = crearPanelFacebook();
+        panelDerecho.setPreferredSize(new Dimension(
+            Toolkit.getDefaultToolkit().getScreenSize().width / 3,
+            0
+        ));
+
+        //add(panelIzquierdo, BorderLayout.CENTER);
+        //add(panelDerecho, BorderLayout.EAST);
+        panelIzquierdo.setOpaque(false);
+        panelCajas.setOpaque(false);
+        layeredPane.setOpaque(false);
+        JSplitPane split = new JSplitPane(
+                JSplitPane.HORIZONTAL_SPLIT,
+                panelIzquierdo,
+                panelDerecho
+        );
+
+        // 👉 60% izquierda, 40% derecha
+        split.setResizeWeight(0.6);
+
+        // opcional: quitar la línea divisora
+        split.setDividerSize(0);
+
+        getContentPane().setLayout(new BorderLayout());
+        getContentPane().add(split, BorderLayout.CENTER);
     }
     
     private JPanel crearCajaConImagen(String titulo, JLabel lblTurno, String imagePath, boolean izquierda) {
@@ -255,69 +291,6 @@ public class Pantalla extends javax.swing.JFrame {
         return panel;
     }
 
-
-    /*private JPanel crearCajaConImagen(String titulo, JLabel lblTurno, String imagePath, boolean izquierda) {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setOpaque(false);
-        panel.setBorder(BorderFactory.createLineBorder(Color.WHITE, 3));
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.weightx = 1.0;
-
-        // Título
-        JLabel lblTitulo = new JLabel(titulo, SwingConstants.CENTER);
-        lblTitulo.setForeground(Color.WHITE);
-        lblTitulo.setFont(new Font("Arial", Font.BOLD, 64));
-
-        gbc.gridy = 0;
-        gbc.weighty = 1;
-        gbc.insets = new Insets(20, 0, 20, 0);
-        panel.add(lblTitulo, gbc);
-
-        // Panel interno con BorderLayout
-        JPanel turnoPanel = new JPanel(new BorderLayout());
-        turnoPanel.setOpaque(false);
-
-        // Imagen
-        ImageIcon icon = new ImageIcon(getClass().getResource(imagePath));
-        Image img = icon.getImage().getScaledInstance(250, 400, Image.SCALE_SMOOTH); // más grande
-        JLabel lblImagen = new JLabel(new ImageIcon(img));
-
-        // Turno
-        lblTurno.setText("");
-        lblTurno.setForeground(Color.WHITE);
-        lblTurno.setHorizontalAlignment(SwingConstants.CENTER);
-
-        // Colocar según posición
-        if (izquierda) {
-            turnoPanel.add(lblImagen, BorderLayout.WEST);   // imagen pegada a la izquierda
-            turnoPanel.add(lblTurno, BorderLayout.CENTER);  // turno ocupa el centro
-        } else {
-            turnoPanel.add(lblTurno, BorderLayout.CENTER);  // turno ocupa el centro
-            turnoPanel.add(lblImagen, BorderLayout.EAST);   // imagen pegada a la derecha
-        }
-
-        gbc.gridy = 1;
-        gbc.weighty = 2;
-        gbc.insets = new Insets(20, 0, 20, 0);
-        panel.add(turnoPanel, gbc);
-
-        // Ajuste dinámico de fuente para que el turno sea grande
-        panel.addComponentListener(new java.awt.event.ComponentAdapter() {
-            @Override
-            public void componentResized(java.awt.event.ComponentEvent e) {
-                int ancho = panel.getWidth();
-                int alto = panel.getHeight();
-                int fontSize = Math.min(ancho / 3, alto / 2); // más grande que antes
-                lblTurno.setFont(new Font("Arial", Font.BOLD, fontSize));
-            }
-        });
-
-        return panel;
-    }*/
-    
     private void iniciarActualizacionAutomatica() {
         int delay = 1500; // 1.5 segundos
         new javax.swing.Timer(delay, e -> actualizarTurnos()).start();
@@ -482,4 +455,101 @@ public class Pantalla extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     // End of variables declaration//GEN-END:variables
+
+    private void actualizarFacebookCache() {
+        new Thread(() -> {
+            try {
+                FacebookService service = new FacebookService();
+                java.util.List<String> imagenes = service.obtenerImagenes();
+
+                String carpeta = System.getProperty("user.home") + "/Documents/kiosco/cache/facebook/";
+                java.io.File dir = new java.io.File(carpeta);
+
+                if (!dir.exists()) dir.mkdirs();
+
+                System.out.println("Imágenes obtenidas: " + imagenes.size());
+
+                // limpiar carpeta
+                for (java.io.File f : dir.listFiles()) {
+                    f.delete();
+                }
+
+                int i = 0;
+                for (String url : imagenes) {
+                    System.out.println("Descargando: " + url);
+
+                    String destino = carpeta + "img_" + i + ".jpg";
+
+                    // 👇 AQUÍ se usa el downloader
+                    ImageDownloader.descargar(url, destino);
+
+                    i++;
+                    if (i >= 10) break;
+                }
+
+                System.out.println("Facebook actualizado");
+
+            } catch (Exception e) {
+                System.out.println("Error cache FB: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }).start();
+    }
+    
+    
+    private JPanel crearPanelFacebook() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(Color.BLACK);
+
+        JLabel lblImagen = new JLabel();
+        lblImagen.setHorizontalAlignment(SwingConstants.CENTER);
+
+        panel.add(lblImagen, BorderLayout.CENTER);
+
+        String carpeta = System.getProperty("user.home") + "/Documents/kiosco/cache/facebook/";
+
+        Timer timer = new Timer(5000, null);
+
+        timer.addActionListener(e -> {
+            try {
+                java.io.File dir = new java.io.File(carpeta);
+                java.io.File[] files = dir.listFiles((d, name) -> name.endsWith(".jpg") || name.endsWith(".png"));
+
+                if (files != null && files.length > 0) {
+
+                    int index = (int) (Math.random() * files.length);
+                    ImageIcon icon = new ImageIcon(files[index].getAbsolutePath());
+
+                    // 👇 usamos tamaño del label (ya renderizado)
+                    int w = lblImagen.getWidth();
+                    int h = lblImagen.getHeight();
+
+                    int newW = (int) (w * 0.8); // 80% ancho
+                    int newH = (int) (h * 0.8); // 80% alto
+
+                    Image img = icon.getImage().getScaledInstance(
+                            newW,
+                            newH,
+                            Image.SCALE_SMOOTH
+                    );
+                    lblImagen.setVerticalAlignment(SwingConstants.CENTER);
+lblImagen.setHorizontalAlignment(SwingConstants.CENTER);
+
+                    lblImagen.setIcon(new ImageIcon(img));
+
+                    lblImagen.revalidate();
+                    lblImagen.repaint();
+                }
+            } catch (Exception ex) {
+                System.out.println("Error carrusel: " + ex.getMessage());
+            }
+        });
+
+        // 👇 CLAVE: arrancar después de que el panel ya existe
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            timer.start();
+        });
+
+        return panel;
+    }
 }

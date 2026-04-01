@@ -17,8 +17,8 @@ public class Etiquetas {
         //Touch ventana = new Touch();
         //Turnos ventana = new Turnos();
         //TurnosCarnes ventana = new TurnosCarnes();    
-        //Pantalla ventana = new Pantalla();
-        PantallaCarnes ventana = new PantallaCarnes();
+        Pantalla ventana = new Pantalla();
+        //PantallaCarnes ventana = new PantallaCarnes();
         //Semillas ventana = new Semillas();
         //Entradas ventana = new Entradas();
         //ventana.setExtendedState(JFrame.MAXIMIZED_BOTH);
