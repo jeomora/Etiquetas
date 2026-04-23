@@ -25,7 +25,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -54,8 +56,15 @@ public class Touch extends javax.swing.JFrame {
     Basculon basculon = new Basculon();
     Historial historial = new Historial();
     TestRXTX impres = new TestRXTX();
-    //Epson epson = new Epson();
-    String sucuch = "7";
+    Map<String, String> config = leerConfiguracion();
+
+    String sucuch = config.getOrDefault("SUCURSAL","7");
+    String zebra = config.getOrDefault("ZEBRA","");
+    String comPort = config.getOrDefault("PUERTO BASCULA","COM6");
+    String epson = config.getOrDefault("EPSON","");
+    String ipTurnos = config.getOrDefault("IP TURNOS","");
+    
+    //String  sucuch = "7";
     private static int x = 0;
     private long lastPrintTime = 0;
     DefaultTableModel tableModel = new DefaultTableModel(new Object[]{"Código", "Descripción", "Precio"}, 0){
@@ -70,7 +79,10 @@ public class Touch extends javax.swing.JFrame {
      */
     public Touch() {
         initComponents();
-        sucuch = leerPuertoSucursal();
+        //sucuch = leerPuertoSucursal();
+        System.out.println(sucuch);
+        System.out.println(zebra);
+        System.out.println(comPort);
         impres.procesarPendientesNoEncontrados();
         setTitle("IMPRESIÓN DE ETIQUETAS");
         setSize(1920, 1080);
@@ -174,7 +186,8 @@ public class Touch extends javax.swing.JFrame {
         });
         
         
-        String comPort = leerPuertoCOMDesdeArchivo();
+        //String comPort = leerPuertoCOMDesdeArchivo();
+        
         if (comPort != null) {
             basculon.initialize(comPort);
         } else {
@@ -374,7 +387,7 @@ public class Touch extends javax.swing.JFrame {
         }
     }  
     
-    private String leerPuertoCOMDesdeArchivo() {
+    /*private String leerPuertoCOMDesdeArchivo() {
         String comPort = null;
         try {
             File archivo = new File("comport.txt");
@@ -411,7 +424,7 @@ public class Touch extends javax.swing.JFrame {
             comPorta = "7";
         }
         return comPorta;
-    }
+    }*/
     
     private static ImageIcon loadImage(String imageName) {
         // Construir la ruta a la imagen de forma dinámica, por ejemplo: "images/img284.jpg"
@@ -531,7 +544,46 @@ public class Touch extends javax.swing.JFrame {
         }
         configurarTabla(tblProdos);
     }
+    
+    private static Map<String, String> leerConfiguracion() {
+        Map<String, String> config = new HashMap<>();
 
+        try {
+            File archivo = new File("txtetiquetas.txt");
+
+            if (archivo.exists()) {
+                BufferedReader reader = new BufferedReader(new FileReader(archivo));
+                String linea;
+
+                while ((linea = reader.readLine()) != null) {
+                    linea = linea.trim();
+
+                    // Ignorar líneas vacías o comentarios
+                    if (linea.isEmpty() || linea.startsWith("#")) {
+                        continue;
+                    }
+
+                    String[] partes = linea.split(":", 2);
+
+                    if (partes.length == 2) {
+                        String clave = partes[0].trim();
+                        String valor = partes[1].trim();
+                        config.put(clave, valor);
+                    } else {
+                        System.out.println("Línea inválida: " + linea);
+                    }
+                }
+
+                reader.close();
+            } else {
+                System.out.println("El archivo sucursal.txt no existe.");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return config;
+    }
     
     
 

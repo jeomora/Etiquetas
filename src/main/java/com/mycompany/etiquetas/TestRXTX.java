@@ -25,7 +25,9 @@ import java.sql.ResultSet;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.print.Doc;
 import javax.print.DocFlavor;
 import javax.print.DocPrintJob;
@@ -35,11 +37,12 @@ import javax.print.SimpleDoc;
 
 
 public class TestRXTX {
-    static String comPort = "ZDesigner GC420t (EPL)";
     static PrintService[] services = null;
     static PrintService zebraService = null;
     static PrintService epsonService = null;
-
+    static Map<String, String> config = leerConfiguracion();
+    static String comPort = config.getOrDefault("ZEBRA","ZDesigner GC420t (EPL)");
+    static String sucus = config.getOrDefault("SUCURSAL","8");
     
     public TestRXTX(){    
         getPrinter();
@@ -50,7 +53,7 @@ public class TestRXTX {
         zebraService = null;
         for (PrintService service : services) {
             System.out.println(service.getName());
-            comPort = leerPuertoCOMDesdeArchivo();
+            //comPort = leerPuertoCOMDesdeArchivo();
 
             // Si se leyó correctamente, inicializa el basculón
             if (comPort == null) {
@@ -70,9 +73,7 @@ public class TestRXTX {
             System.out.println(puerto.getSystemPortName());
         }
 
-        // Supongamos que identificamos que el puerto USB está emulando un puerto COM
-        // (por ejemplo, COM3)
-        SerialPort puertoZebra = SerialPort.getCommPort("COM1");  // Reemplaza "COM3" por el puerto adecuado
+        SerialPort puertoZebra = SerialPort.getCommPort("COM1");  
         puertoZebra.setBaudRate(9600); // Ajusta la tasa de baudios si es necesario
         puertoZebra.setNumDataBits(8);
         puertoZebra.setNumStopBits(SerialPort.ONE_STOP_BIT);
@@ -193,7 +194,7 @@ public class TestRXTX {
         return new String[]{linea1, linea2};
     }
     
-    private static String leerPuertoCOMDesdeArchivo() {
+    /*private static String leerPuertoCOMDesdeArchivo() {
         String comPorta = null;
         try {
             // Obtener el archivo "comport.txt" desde la misma carpeta donde está el JAR
@@ -211,7 +212,7 @@ public class TestRXTX {
             e.printStackTrace();
         }
         return comPorta;
-    }
+    }*/
     
     public static void testPrinterSin(String codigo,String desco){
         String uno = "";String dos = "";
@@ -394,7 +395,7 @@ public class TestRXTX {
         LocalDateTime fechaHoraActual = LocalDateTime.now();
         DateTimeFormatter formato = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String fecha_venta = fechaHoraActual.format(formato);
-        String sucus = leerPuertoSucursal();
+        //String sucus = leerPuertoSucursal();
 
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -450,7 +451,7 @@ public class TestRXTX {
         }
     }
     
-    private static String leerPuertoSucursal() {
+    /*private static String leerPuertoSucursal() {
         String comPorta = null;
         try {
             // Obtener el archivo "comport.txt" desde la misma carpeta donde está el JAR
@@ -470,7 +471,7 @@ public class TestRXTX {
             comPorta = "7";
         }
         return comPorta;
-    }
+    }*/
     
     public static void guardarEnArchivoLocal(String codigo, String cantidad, String descripcion, String fechaHora) {
         String linea = codigo + "|" + cantidad + "|" + descripcion + "|" + fechaHora;
@@ -658,6 +659,46 @@ public class TestRXTX {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    
+    private static Map<String, String> leerConfiguracion() {
+        Map<String, String> config = new HashMap<>();
+
+        try {
+            File archivo = new File("txtetiquetas.txt");
+
+            if (archivo.exists()) {
+                BufferedReader reader = new BufferedReader(new FileReader(archivo));
+                String linea;
+
+                while ((linea = reader.readLine()) != null) {
+                    linea = linea.trim();
+
+                    // Ignorar líneas vacías o comentarios
+                    if (linea.isEmpty() || linea.startsWith("#")) {
+                        continue;
+                    }
+
+                    String[] partes = linea.split(":", 2);
+
+                    if (partes.length == 2) {
+                        String clave = partes[0].trim();
+                        String valor = partes[1].trim();
+                        config.put(clave, valor);
+                    } else {
+                        System.out.println("Línea inválida: " + linea);
+                    }
+                }
+
+                reader.close();
+            } else {
+                System.out.println("El archivo sucursal.txt no existe.");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return config;
     }
     
 }

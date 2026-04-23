@@ -4,6 +4,10 @@
  */
 package com.mycompany.etiquetas;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -18,14 +22,17 @@ import java.util.Map;
  * @author JEOS
  */
 public class ConexionEpsonCarnes {
-    private static final String URL = "jdbc:mysql://192.168.1.221:3306/turnosemillas";
+    //private static final String URL = "jdbc:mysql://192.168.1.221:3306/turnosemillas";
     //private static final String URL = "jdbc:mysql://localhost:3306/turnosemillas";
     private static final String USUARIO = "root";
     private static final String CONTRASENA = "";
 
     // Conectar a la base de datos
     public static Connection conectar() throws SQLException {
-        return DriverManager.getConnection(URL, USUARIO, CONTRASENA);
+        Map<String, String> config = leerConfiguracion();
+        String urs = config.getOrDefault("IP TURNOS","192.168.1.221");
+        String urls = "jdbc:mysql://"+urs+":3306/turnosemillas";
+        return DriverManager.getConnection(urls, USUARIO, CONTRASENA);
     }
 
     public static int getTurnos() {
@@ -114,6 +121,46 @@ public class ConexionEpsonCarnes {
             System.out.println("Error al cargar los siguientes: " + e.getMessage());
         }
         return turnos;
+    }
+    
+    private static Map<String, String> leerConfiguracion() {
+        Map<String, String> config = new HashMap<>();
+
+        try {
+            File archivo = new File("txtetiquetas.txt");
+
+            if (archivo.exists()) {
+                BufferedReader reader = new BufferedReader(new FileReader(archivo));
+                String linea;
+
+                while ((linea = reader.readLine()) != null) {
+                    linea = linea.trim();
+
+                    // Ignorar líneas vacías o comentarios
+                    if (linea.isEmpty() || linea.startsWith("#")) {
+                        continue;
+                    }
+
+                    String[] partes = linea.split(":", 2);
+
+                    if (partes.length == 2) {
+                        String clave = partes[0].trim();
+                        String valor = partes[1].trim();
+                        config.put(clave, valor);
+                    } else {
+                        System.out.println("Línea inválida: " + linea);
+                    }
+                }
+
+                reader.close();
+            } else {
+                System.out.println("El archivo sucursal.txt no existe.");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return config;
     }
     
 }
